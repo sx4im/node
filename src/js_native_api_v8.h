@@ -94,8 +94,17 @@ struct napi_env__ {
     CHECK_EQ(open_handle_scopes, open_handle_scopes_before);
     CHECK_EQ(open_callback_scopes, open_callback_scopes_before);
     if (!last_exception.IsEmpty()) {
-      handle_exception(this, last_exception.Get(this->isolate));
+      // Clear the pending exception before reporting it. The handler
+      // may run user code (for example the `uncaughtException` handler)
+      // that re-enters this function, directly or through finalizers
+      // invoked by the garbage collector, and a re-entrant call must
+      // not see the exception that is already being reported. Otherwise
+      // the same exception is reported a second time and the process
+      // aborts in the re-entrancy guard of TriggerUncaughtException.
+      // See https://github.com/nodejs/node/issues/67421.
+      v8::Local<v8::Value> exception = last_exception.Get(this->isolate);
       last_exception.Reset();
+      handle_exception(this, exception);
     }
   }
 
