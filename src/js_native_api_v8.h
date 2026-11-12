@@ -94,8 +94,13 @@ struct napi_env__ {
     CHECK_EQ(open_handle_scopes, open_handle_scopes_before);
     CHECK_EQ(open_callback_scopes, open_callback_scopes_before);
     if (!last_exception.IsEmpty()) {
-      handle_exception(this, last_exception.Get(this->isolate));
+      // Take the exception out before invoking the handler: the handler
+      // may re-enter CallIntoModule (for example, a finalizer invoked
+      // from GC while an uncaught exception is being reported), and it
+      // must not see this exception again as if it had just been thrown.
+      v8::Local<v8::Value> exception = last_exception.Get(this->isolate);
       last_exception.Reset();
+      handle_exception(this, exception);
     }
   }
 

@@ -18,6 +18,13 @@
         'NAPI_EXPERIMENTAL'
       ],
       'sources': ['test_uncaught_exception.c']
+    },
+    {
+      'target_name': 'test_gc_in_uncaught_exception_handler',
+      'defines': [
+        'NAPI_EXPERIMENTAL'
+      ],
+      'sources': ['test_gc_in_uncaught_exception_handler.c']
     }
   ]
 }
