@@ -4728,7 +4728,12 @@ static void CpSyncCheckPaths(const FunctionCallbackInfo<Value>& args) {
 
   // Optimization opportunity: Check if this "exists" call is good for
   // performance.
-  if (!dest_exists || !std::filesystem::exists(dest_path.parent_path())) {
+  // Use the non-throwing overload: the parent of a destination directly
+  // under a volume root is the volume itself, where exists() fails and the
+  // throwing overload would abort the process instead of returning false.
+  std::error_code exists_error;
+  if (!dest_exists ||
+      !std::filesystem::exists(dest_path.parent_path(), exists_error)) {
     std::filesystem::create_directories(dest_path.parent_path(), error_code);
   }
 }
