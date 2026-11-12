@@ -94,8 +94,14 @@ struct napi_env__ {
     CHECK_EQ(open_handle_scopes, open_handle_scopes_before);
     CHECK_EQ(open_callback_scopes, open_callback_scopes_before);
     if (!last_exception.IsEmpty()) {
-      handle_exception(this, last_exception.Get(this->isolate));
+      // Clear the pending exception before invoking the handler: the
+      // handler may re-enter the module (e.g. a finalizer running during
+      // gc() from an `uncaughtException` handler), and the stale exception
+      // must not be reported a second time. See
+      // https://github.com/nodejs/node/issues/67421.
+      v8::Local<v8::Value> exception = last_exception.Get(this->isolate);
       last_exception.Reset();
+      handle_exception(this, exception);
     }
   }
 
