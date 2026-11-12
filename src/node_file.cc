@@ -4728,7 +4728,8 @@ static void CpSyncCheckPaths(const FunctionCallbackInfo<Value>& args) {
 
   // Optimization opportunity: Check if this "exists" call is good for
   // performance.
-  if (!dest_exists || !std::filesystem::exists(dest_path.parent_path())) {
+  if (!dest_exists ||
+      !std::filesystem::exists(dest_path.parent_path(), error_code)) {
     std::filesystem::create_directories(dest_path.parent_path(), error_code);
   }
 }
